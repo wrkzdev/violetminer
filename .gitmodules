@@ -1,0 +1,3 @@
+[submodule "src/Argon2"]
+	path = src/Argon2
+	url = https://github.com/zpalmtree/argon2-cpp.git
