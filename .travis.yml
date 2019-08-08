@@ -45,6 +45,11 @@ matrix:
     compiler: clang
     env:
     - LABEL="osx"
+    install:
+    # Need to make sure that we have openssl installed
+    - travis_retry brew install openssl || travis_retry brew upgrade openssl
+    - brew link --force openssl
+    - ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
 
   # Arm (aarch64) cross compile
   - os: linux
@@ -64,12 +69,6 @@ matrix:
 
 before_install:
 - eval $MATRIX_EVAL
-
-install:
-# Need to make sure that we have openssl installed
-- if [[ "${LABEL:0:3}" == "osx" ]]; then travis_retry brew install openssl || travis_retry brew upgrade openssl ; fi
-- if [[ "${LABEL:0:3}" == "osx" ]]; then brew link --force openssl ; fi
-- if [[ "${LABEL:0:3}" == "osx" ]]; then ln -s /usr/local/opt/openssl/include/openssl /usr/local/include ; fi
 
 script:
 - eval $MATRIX_EVAL
