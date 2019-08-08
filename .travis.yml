@@ -60,8 +60,7 @@ matrix:
     script:
     - mkdir build && cd build
     - export PATH=$MSBUILD_PATH:$PATH
-    - cmake -G "Visual Studio 15 2017 Win64" ..
-    - MSBuild violetminer.sln /p:Configuration=Release /m
+    - ../scripts/win-install.bat
 
 before_install:
 - eval $MATRIX_EVAL
