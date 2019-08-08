@@ -1,3 +1,7 @@
+# violetminer
+
+![image](https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Argon_discharge_tube.jpg/640px-Argon_discharge_tube.jpg)
+
 ## Setup
 
 ### Linux
