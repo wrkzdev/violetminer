@@ -11,7 +11,6 @@ int main()
 {
     std::vector<Pool> pools;
 
-    pools.push_back({ "1.1.1.1", 3333 });
     pools.push_back({ "127.0.0.1", 3333 });
 
     PoolCommunication pool(pools);

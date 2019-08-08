@@ -10,7 +10,9 @@
 #include <thread>
 
 #include "Config/Constants.h"
+#include "ExternalLibs/json.hpp"
 #include "SocketWrapper/SocketWrapper.h"
+#include "Types/PoolMessage.h"
 #include "Utilities/ColouredMsg.h"
 
 PoolCommunication::PoolCommunication(
@@ -24,7 +26,11 @@ std::string formatPool(const Pool pool)
     return "[" + pool.host + ":" + std::to_string(pool.port) + "] ";
 }
 
-void loginFailed(const Pool pool, const int loginAttempt, const bool connectFail)
+void loginFailed(
+    const Pool pool,
+    const int loginAttempt,
+    const bool connectFail,
+    const std::string customMessage = "")
 {
     std::stringstream stream;
 
@@ -35,6 +41,12 @@ void loginFailed(const Pool pool, const int loginAttempt, const bool connectFail
               << InformationMsg(loginAttempt)
               << InformationMsg("/")
               << InformationMsg(Constants::MAX_LOGIN_ATTEMPTS) << std::endl;
+
+    if (customMessage != "")
+    {
+        std::cout << InformationMsg(formatPool(pool))
+                  << WarningMsg("Error: " + customMessage) << std::endl;
+    }
 
     if (loginAttempt != Constants::MAX_LOGIN_ATTEMPTS)
     {
@@ -76,8 +88,26 @@ void PoolCommunication::login()
 
                 if (res)
                 {
+                    try
+                    {
+                        const LoginMessage message = nlohmann::json::parse(*res);
+
+                        if (message.error)
+                        {
+                            loginFailed(pool, i, false, *(message.error));
+                            continue;
+                        }
+                    }
+                    catch (const std::exception &e)
+                    {
+                        loginFailed(pool, i, false, "Failed to parse message from pool");
+                        continue;
+                    }
+
                     std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Logged in.") << std::endl;
+
                     m_currentPool = pool;
+
                     return;
                 }
                 else
