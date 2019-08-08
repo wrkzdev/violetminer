@@ -1,6 +1,3 @@
-# Don't build the Argon2 test executable
-set(BUILD_TESTS OFF)
-
 # Add the Argon2 directory to add that library
 add_subdirectory(Argon2)
 

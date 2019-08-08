@@ -69,3 +69,4 @@ script:
 - mkdir build && cd build
 - cmake -DCMAKE_BUILD_TYPE=Release ..
 - make -j2
+- if [[ "$LABEL" != "aarch64" ]]; then ./argon2-cpp-test ; fi
