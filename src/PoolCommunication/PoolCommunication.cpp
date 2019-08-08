@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////
 
 #include <iostream>
+#include <sstream>
 #include <thread>
 
 #include "Config/Constants.h"
