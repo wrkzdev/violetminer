@@ -99,7 +99,7 @@ void PoolCommunication::login()
                             continue;
                         }
                     }
-                    catch (const std::exception &e)
+                    catch (const std::exception &)
                     {
                         loginFailed(pool, i, false, "Failed to parse message from pool");
                         continue;
