@@ -52,7 +52,9 @@ void PoolCommunication::login()
     {
         for (const auto &pool : m_allPools)
         {
-            sockwrapper::SocketWrapper socket(pool.host.c_str(), pool.port);
+            m_socket = std::make_shared<sockwrapper::SocketWrapper>(
+                pool.host.c_str(), pool.port, '\n', Constants::POOL_LOGIN_RETRY_INTERVAL / 1000
+            );
 
             std::stringstream stream;
 
@@ -60,7 +62,7 @@ void PoolCommunication::login()
 
             for (int i = 1; i <= Constants::MAX_LOGIN_ATTEMPTS; i++)
             {
-                const bool success = socket.start();
+                const bool success = m_socket->start();
 
                 if (!success)
                 {
@@ -68,13 +70,14 @@ void PoolCommunication::login()
                     continue;
                 }
 
-                const auto res = socket.sendMessageAndGetResponse(
+                const auto res = m_socket->sendMessageAndGetResponse(
                     "{\"method\": \"login\", \"params\": {\"login\": \"TRTLv2Fyavy8CXG8BPEbNeCHFZ1fuDCYCZ3vW5H5LXN4K2M2MHUpTENip9bbavpHvvPwb4NDkBWrNgURAd5DB38FHXWZyoBh4wW\"}, \"id\": \"1\"}\n"
                 );
 
                 if (res)
                 {
                     std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Logged in.") << std::endl;
+                    m_currentPool = pool;
                     return;
                 }
                 else
