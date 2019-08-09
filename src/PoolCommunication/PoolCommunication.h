@@ -25,4 +25,8 @@ class PoolCommunication
 
     /* The socket instance for the pool we are talking to */
     std::shared_ptr<sockwrapper::SocketWrapper> m_socket;
+
+    /* Are we currently mining on the preferred pool? If we aren't, we will
+       try reconnecting to more preferred pools periodically */
+    bool m_preferredPool;
 };

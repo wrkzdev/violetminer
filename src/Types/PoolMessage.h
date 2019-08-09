@@ -6,6 +6,15 @@
 
 #include <string>
 
+struct PoolError
+{
+    /* The programmatic error code */
+    int32_t errorCode;
+
+    /* Human readable error */
+    std::string errorMessage;
+};
+
 struct Job
 {
     /* The mining job to work on */
@@ -40,7 +49,7 @@ struct PoolMessage
     std::string jsonRpc;
 
     /* Potential error from the operation */
-    std::optional<std::string> error;
+    std::optional<PoolError> error;
 };
 
 struct LoginMessage : PoolMessage
@@ -53,6 +62,12 @@ struct LoginMessage : PoolMessage
 
     Job job;
 };
+
+inline void from_json(const nlohmann::json &j, PoolError &p)
+{
+    p.errorCode = j.at("code").get<int32_t>();
+    p.errorMessage = j.at("message").get<std::string>();
+}
 
 inline void from_json(const nlohmann::json &j, Job &job)
 {
@@ -98,13 +113,19 @@ inline void from_json(const nlohmann::json &j, PoolMessage &p)
 
     if (!error.is_null())
     {
-        p.error = error.get<std::string>();
+        p.error = error.get<PoolError>();
     }
 }
 
 inline void from_json(const nlohmann::json &j, LoginMessage &l)
 {
     from_json(j, static_cast<PoolMessage &>(l));
+
+    /* Following properties only exist when there's no error */
+    if (l.error)
+    {
+        return;
+    }
 
     const auto result = j.at("result");
 

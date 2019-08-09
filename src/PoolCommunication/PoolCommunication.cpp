@@ -103,21 +103,23 @@ void PoolCommunication::login()
 
                         if (message.error)
                         {
-                            loginFailed(pool, i, false, *(message.error));
+                            loginFailed(pool, i, false, message.error->errorMessage);
                             continue;
                         }
+
+                        std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Logged in.") << std::endl;
+
+                        m_currentPool = pool;
+                        m_preferredPool = i == 1;
+
+                        return;
+
                     }
-                    catch (const std::exception &)
+                    catch (const std::exception &e)
                     {
-                        loginFailed(pool, i, false, "Failed to parse message from pool");
+                        loginFailed(pool, i, false, "Failed to parse message from pool (" + std::string(e.what()) + ") (" + *res + ")");
                         continue;
                     }
-
-                    std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Logged in.") << std::endl;
-
-                    m_currentPool = pool;
-
-                    return;
                 }
                 else
                 {
