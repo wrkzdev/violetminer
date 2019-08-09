@@ -9,7 +9,7 @@
 #include <thread>
 
 #include "PoolCommunication/PoolCommunication.h"
-#include "Types/HashingAlgorithm.h"
+#include "Types/IHashingAlgorithm.h"
 
 class MinerManager
 {
@@ -17,7 +17,7 @@ class MinerManager
     /* CONSTRUCTOR */
     MinerManager(
         const std::shared_ptr<PoolCommunication> pool,
-        const HashingAlgorithm hashingAlgorithm,
+        const std::function<std::shared_ptr<IHashingAlgorithm>(void)> algorithmGenerator,
         const uint32_t threadCount);
 
     /* DESTRUCTOR */
@@ -42,9 +42,14 @@ class MinerManager
     /* Number of threads to launch */
     const uint32_t m_threadCount;
 
-    /* The core hash function */
-    const HashingAlgorithm m_hashingAlgorithm;
+    /* This function supplies us an instance of the hashing algorithm instance
+       each time it is called, so we can have one per thread */
+    const std::function<std::shared_ptr<IHashingAlgorithm>(void)> m_algorithmGenerator;
 
     /* Pool connection */
     const std::shared_ptr<PoolCommunication> m_pool;
+
+    std::atomic<uint64_t> m_hashes = 0;
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_startTime;
 };

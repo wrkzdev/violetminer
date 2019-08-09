@@ -11,6 +11,7 @@
 #include "Utilities/ColouredMsg.h"
 #include "Utilities/Input.h"
 #include "Utilities/String.h"
+#include "ArgonVariants/Variants.h"
 
 Pool getPool()
 {
@@ -113,8 +114,8 @@ int main()
 
     pool->login();
 
-    MinerManager userMinerManager(pool, {}, std::thread::hardware_concurrency());
-    MinerManager devMinerManager(pool, {}, std::thread::hardware_concurrency());
+    MinerManager userMinerManager(pool, ArgonVariant::chukwa, std::thread::hardware_concurrency());
+    MinerManager devMinerManager(pool, ArgonVariant::chukwa, std::thread::hardware_concurrency());
 
     const auto cycleLength = std::chrono::minutes(100);
     const auto devMiningTime = std::chrono::seconds(static_cast<uint8_t>(60 * Constants::DEV_FEE_PERCENT));
