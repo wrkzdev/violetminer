@@ -83,9 +83,17 @@ void PoolCommunication::login()
                     continue;
                 }
 
-                const auto res = m_socket->sendMessageAndGetResponse(
-                    "{\"method\": \"login\", \"params\": {\"login\": \"TRTLv2Fyavy8CXG8BPEbNeCHFZ1fuDCYCZ3vW5H5LXN4K2M2MHUpTENip9bbavpHvvPwb4NDkBWrNgURAd5DB38FHXWZyoBh4wW\"}, \"id\": \"1\"}\n"
-                );
+                const nlohmann::json loginMsg = {
+                    {"method", "login"},
+                    {"params", {
+                        {"login", pool.username},
+                        {"pass", pool.password},
+                        {"rigid", pool.rigID},
+                    }},
+                    {"id", "1"}
+                };
+
+                const auto res = m_socket->sendMessageAndGetResponse(loginMsg.dump() + "\n");
 
                 if (res)
                 {
