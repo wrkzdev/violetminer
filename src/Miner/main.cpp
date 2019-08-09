@@ -23,10 +23,7 @@ Pool getPool()
         std::string host;
         uint16_t port;
 
-        if (!std::getline(std::cin, address))
-        {
-            return pool;
-        }
+        std::getline(std::cin, address);
 
         Utilities::trim(address);
 
@@ -44,25 +41,32 @@ Pool getPool()
         break;
     }
 
-    std::cout << InformationMsg("\nEnter your pool login. This is usually your wallet address: ");
-
-    std::string login;
-
-    if (!std::getline(std::cin, login))
+    while (true)
     {
-        return pool;
-    }
+        std::cout << InformationMsg("\nEnter your pool login. This is usually your wallet address: ");
 
-    pool.username = login;
+        std::string login;
+
+        std::getline(std::cin, login);
+
+        Utilities::trim(login);
+
+        if (login == "")
+        {
+            std::cout << WarningMsg("Login cannot be empty! Try again.") << std::endl;
+            continue;
+        }
+
+        pool.username = login;
+
+        break;
+    }
 
     std::cout << InformationMsg("\nEnter the pool password. You can usually leave this blank, or use 'x': ");
 
     std::string password;
 
-    if (!std::getline(std::cin, password))
-    {
-        return pool;
-    }
+    std::getline(std::cin, password);
 
     pool.password = password;
 
@@ -70,11 +74,6 @@ Pool getPool()
               << InformationMsg("You can leave this blank if desired: ");
 
     std::string rigID;
-
-    if (!std::getline(std::cin, rigID))
-    {
-        return pool;
-    }
 
     pool.rigID = rigID;
 
