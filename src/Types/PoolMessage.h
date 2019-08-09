@@ -18,17 +18,17 @@ struct Job
     uint64_t shareDifficulty;
 
     /* The height of the block we are attempting to form */
-    uint64_t height;
+    std::optional<uint64_t> height;
 
     /* The block major version. Duh. */
-    uint8_t blockMajorVersion;
+    std::optional<uint8_t> blockMajorVersion;
 
     /* Yeah, you can figure this one out champ. */
-    uint8_t blockMinorVersion;
+    std::optional<uint8_t> blockMinorVersion;
 
-    uint8_t rootMajorVersion;
+    std::optional<uint8_t> rootMajorVersion;
 
-    uint8_t rootMinorVersion;
+    std::optional<uint8_t> rootMinorVersion;
 };
 
 struct PoolMessage
@@ -63,12 +63,30 @@ inline void from_json(const nlohmann::json &j, Job &job)
 
     job.shareDifficulty = std::stoull(target, nullptr, 16);
 
-    job.height = j.at("height").get<uint64_t>();
+    if (j.find("height") != j.end())
+    {
+        job.height = j.at("height").get<uint64_t>();
+    }
 
-    job.blockMajorVersion = j.at("blockMajorVersion").get<uint8_t>();
-    job.blockMinorVersion = j.at("blockMinorVersion").get<uint8_t>();
-    job.rootMajorVersion = j.at("rootMajorVersion").get<uint8_t>();
-    job.rootMinorVersion = j.at("rootMinorVersion").get<uint8_t>();
+    if (j.find("blockMajorVersion") != j.end())
+    {
+        job.blockMajorVersion = j.at("blockMajorVersion").get<uint8_t>();
+    }
+
+    if (j.find("blockMinorVersion") != j.end())
+    {
+        job.blockMinorVersion = j.at("blockMinorVersion").get<uint8_t>();
+    }
+
+    if (j.find("rootMajorVersion") != j.end())
+    {
+        job.rootMajorVersion = j.at("rootMajorVersion").get<uint8_t>();
+    }
+
+    if (j.find("rootMinorVersion") != j.end())
+    {
+        job.rootMinorVersion = j.at("rootMinorVersion").get<uint8_t>();
+    }
 }
 
 inline void from_json(const nlohmann::json &j, PoolMessage &p)
