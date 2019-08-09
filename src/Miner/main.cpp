@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include "Config/Constants.h"
+#include "MinerManager/MinerManager.h"
 #include "PoolCommunication/PoolCommunication.h"
 #include "Types/Pool.h"
 #include "Utilities/ColouredMsg.h"
@@ -75,6 +77,8 @@ Pool getPool()
 
     std::string rigID;
 
+    std::getline(std::cin, rigID);
+
     pool.rigID = rigID;
 
     return pool;
@@ -105,7 +109,54 @@ int main()
 {
     std::vector<Pool> pools = getPools();
 
-    PoolCommunication pool(pools);
+    const auto pool = std::make_shared<PoolCommunication>(pools);
 
-    pool.login();
+    pool->login();
+
+    MinerManager userMinerManager(pool, {}, std::thread::hardware_concurrency());
+    MinerManager devMinerManager(pool, {}, std::thread::hardware_concurrency());
+
+    const auto cycleLength = std::chrono::minutes(100);
+    const auto devMiningTime = std::chrono::seconds(static_cast<uint8_t>(60 * Constants::DEV_FEE_PERCENT));
+    const auto userMiningTime = cycleLength - devMiningTime;
+
+    if (Constants::DEV_FEE_PERCENT == 0)
+    {
+        std::cout << WarningMsg("Dev fee disabled :( Consider making a one off donation to TRTLv1c5XpYGdwHbcU94foRojzLiz3pQ4AJN6swsy514QrydgvYPCKhDZPt61JG5eVGJKrHsXJHSUHDmAhZ134q8QRN2kJwUbtB") << std::endl;
+
+        /* No dev fee, just start the users mining */
+        userMinerManager.start();
+
+        /* Wait forever */
+        std::promise<void>().get_future().wait();
+    }
+    else
+    {
+        /* 100 minute rounds, alternating between users pool and devs pool */
+        while (true)
+        {
+            /* Start mining for the user */
+            userMinerManager.start();
+
+            /* Mine for userMiningTime minutes */
+            std::this_thread::sleep_for(userMiningTime);
+
+            /* Stop mining for the user */
+            userMinerManager.stop();
+
+            std::cout << InformationMsg("=== Started mining to the development pool - Thank you for supporting violetminer! ===") << std::endl;
+            std::cout << InformationMsg("=== This will last for " + std::to_string(devMiningTime.count()) + " seconds. (Every 100 minutes) ===") << std::endl;
+
+            /* Start mining for the dev */
+            devMinerManager.start();
+
+            /* Mine for devMiningTime minutes */
+            std::this_thread::sleep_for(devMiningTime);
+
+            /* Stop mining for the dev. */
+            devMinerManager.stop();
+
+            std::cout << InformationMsg("=== Regular mining resumed. Thank you for supporting violetminer! ===") << std::endl;
+        }
+    }
 }

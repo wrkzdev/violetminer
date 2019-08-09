@@ -12,4 +12,7 @@ namespace Constants
 
     /* How long to wait before trying again after a failed login, in milliseconds */
     const int POOL_LOGIN_RETRY_INTERVAL = 5000;
+
+    /* The percentage of time to spend mining for the miner developer */
+    const float DEV_FEE_PERCENT = 1.5;
 }

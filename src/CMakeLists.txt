@@ -4,11 +4,17 @@ add_subdirectory(Argon2)
 # Add the Miner directory to add the actual executable
 add_subdirectory(Miner)
 
+# Add the MinerManager directory to add that library
+add_subdirectory(MinerManager)
+
 # Add the PoolCommunication directory to add that library
 add_subdirectory(PoolCommunication)
 
 # Add the Utilities directory to add that library
 add_subdirectory(Utilities)
+
+# Add the MinerManager directory as an include directory, so we can #include "MinerManager/MinerManager.h"
+target_include_directories(MinerManager PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Add the PoolCommunication directory as an include directory, so we can #include "PoolCommunication/PoolCommunication.h"
 target_include_directories(PoolCommunication PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

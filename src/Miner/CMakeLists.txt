@@ -60,4 +60,4 @@ if (OPENSSL_FOUND)
 endif()
 
 # Link violetminer to the libraries it uses
-target_link_libraries(violetminer Argon2 Blake2 PoolCommunication Utilities)
+target_link_libraries(violetminer Argon2 Blake2 MinerManager PoolCommunication Utilities)
