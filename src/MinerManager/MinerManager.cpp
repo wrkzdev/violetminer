@@ -33,17 +33,29 @@ MinerManager::~MinerManager()
 void MinerManager::start()
 {
     m_shouldStop = false;
+
+    /* Login to the pool */
+    m_pool->login();
+
+    /* Get the initial job to work on */
     m_currentJob = m_pool->getJob();
+
+    /* Set initial nonce */
     m_nonce = m_distribution(m_gen);
+
+    /* Indicate that there's no new jobs available to other threads */
     m_newJobAvailable = std::vector(m_threadCount, false);
 
+    /* Launch off the miner threads */
     for (uint32_t i = 0; i < m_threadCount; i++)
     {
         m_threads.push_back(std::thread(&MinerManager::hash, this, i));
     }
 
+    /* Launch off the thread to print stats regularly */
     m_statsThread = std::thread(&MinerManager::printStats, this);
 
+    /* Hook up the function to set a new job when it arrives */
     m_pool->onNewJob([this](const Job &job){
         m_nonce = m_distribution(m_gen);
         m_currentJob = job;
@@ -52,10 +64,12 @@ void MinerManager::start()
         std::cout << InformationMsg("New job, diff ") << SuccessMsg(job.shareDifficulty) << std::endl;
     });
 
+    /* Pass through accepted shares to the hash manager */
     m_pool->onHashAccepted([this](const std::string &){
         m_hashManager.shareAccepted();
     });
 
+    /* Start listening for messages from the pool */
     m_pool->handleMessages();
 }
 

@@ -106,19 +106,43 @@ std::vector<Pool> getPools()
     return pools;
 }
 
+std::vector<Pool> getDevPools()
+{
+    std::vector<Pool> pools;
+
+    Pool pool1;
+    pool1.host = "127.0.0.1";
+    pool1.port = 5555;
+    pool1.username = "TRTLv2Fyavy8CXG8BPEbNeCHFZ1fuDCYCZ3vW5H5LXN4K2M2MHUpTENip9bbavpHvvPwb4NDkBWrNgURAd5DB38FHXWZyoBh4wW";
+
+    pools.push_back(pool1);
+
+    return pools;
+}
+
 int main()
 {
-    std::vector<Pool> pools = getPools();
+    /* Get the pools the user wants to mine to */
+    std::vector<Pool> userPools = getPools();
 
-    const auto pool = std::make_shared<PoolCommunication>(pools);
+    const auto userPoolManager = std::make_shared<PoolCommunication>(userPools);
 
-    pool->login();
+    /* Get the dev pools */
+    std::vector<Pool> devPools = getDevPools();
 
-    MinerManager userMinerManager(pool, ArgonVariant::chukwa, std::thread::hardware_concurrency());
-    MinerManager devMinerManager(pool, ArgonVariant::chukwa, std::thread::hardware_concurrency());
+    const auto devPoolManager = std::make_shared<PoolCommunication>(devPools);
 
+    /* Setup a manager for the user pools and the dev pools */
+    MinerManager userMinerManager(userPoolManager, ArgonVariant::chukwa, std::thread::hardware_concurrency());
+    MinerManager devMinerManager(devPoolManager, ArgonVariant::chukwa, std::thread::hardware_concurrency());
+
+    /* A cycle lasts 100 minutes */
     const auto cycleLength = std::chrono::minutes(100);
+
+    /* We mine for the dev for DEV_FEE_PERCENT off the 100 minutes */
     const auto devMiningTime = std::chrono::seconds(static_cast<uint8_t>(60 * Constants::DEV_FEE_PERCENT));
+
+    /* We mine for the user for the rest of the time */
     const auto userMiningTime = cycleLength - devMiningTime;
 
     if (Constants::DEV_FEE_PERCENT == 0)
@@ -151,7 +175,7 @@ int main()
             /* Start mining for the dev */
             devMinerManager.start();
 
-            /* Mine for devMiningTime minutes */
+            /* Mine for devMiningTime seconds */
             std::this_thread::sleep_for(devMiningTime);
 
             /* Stop mining for the dev. */

@@ -193,6 +193,7 @@ void PoolCommunication::handleMessages()
             if (std::holds_alternative<JobMessage>(poolMessage))
             {
                 const auto job = std::get<JobMessage>(poolMessage).job;
+                m_currentJob = job;
 
                 if (m_onNewJob)
                 {
