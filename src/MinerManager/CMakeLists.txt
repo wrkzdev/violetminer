@@ -1,5 +1,6 @@
 # Add the files we want to link against
 set(miner_manager_source_files
+    HashManager.cpp
     MinerManager.cpp
 )
 

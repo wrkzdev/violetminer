@@ -59,6 +59,11 @@ void loginFailed(
     std::this_thread::sleep_for(std::chrono::milliseconds(Constants::POOL_LOGIN_RETRY_INTERVAL));
 }
 
+void PoolCommunication::printPool()
+{
+    std::cout << InformationMsg(formatPool(m_currentPool));
+}
+
 void PoolCommunication::login()
 {
     while (true)
@@ -99,25 +104,33 @@ void PoolCommunication::login()
                 {
                     try
                     {
-                        const LoginMessage message = nlohmann::json::parse(*res);
+                        std::cout << "Got message: " << *res << std::endl;
 
-                        if (message.error)
-                        {
-                            loginFailed(pool, i, false, message.error->errorMessage);
-                            continue;
-                        }
+                        const LoginMessage message = nlohmann::json::parse(*res);
 
                         std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Logged in.") << std::endl;
 
                         m_currentPool = pool;
+                        m_currentPool.loginID = message.loginID;
                         m_preferredPool = i == 1;
+                        m_currentJob = message.job;
 
                         return;
 
                     }
                     catch (const std::exception &e)
                     {
-                        loginFailed(pool, i, false, "Failed to parse message from pool (" + std::string(e.what()) + ") (" + *res + ")");
+                        try
+                        {
+                            /* Failed to parse as LoginMessage. Maybe it's an error message? */
+                            const ErrorMessage message = nlohmann::json::parse(*res);
+                            loginFailed(pool, i, false, message.error.errorMessage);
+                        }
+                        catch (const std::exception &e)
+                        {
+                            loginFailed(pool, i, false, "Failed to parse message from pool (" + std::string(e.what()) + ") (" + *res + ")");
+                        }
+
                         continue;
                     }
                 }
@@ -133,4 +146,85 @@ void PoolCommunication::login()
 
         std::cout << InformationMsg(formatPool(m_allPools[0])) << WarningMsg("Failed to login/connect to all specified pools. Retrying first pool.") << std::endl;
     }
+}
+
+Job PoolCommunication::getJob()
+{
+    return m_currentJob;
+}
+
+void PoolCommunication::submitShare(
+    const std::vector<uint8_t> &hash,
+    const std::string jobID,
+    const uint32_t nonce)
+{
+    const nlohmann::json submitMsg = {
+        {"method", "submit"},
+        {"params", {
+            {"id", m_currentPool.loginID},
+            {"job_id", jobID},
+            {"nonce", Utilities::toHex(nonce)},
+            {"result", Utilities::toHex(hash)},
+            {"rig_id", m_currentPool.rigID},
+        }},
+        {"id", "1"}
+    };
+
+    m_socket->sendMessage(submitMsg.dump() + "\n");
+}
+
+void PoolCommunication::onNewJob(std::function<void(const Job &job)> callback)
+{
+    m_onNewJob = callback;
+}
+
+void PoolCommunication::onHashAccepted(std::function<void(const std::string &shareID)> callback)
+{
+    m_onHashAccepted = callback;
+}
+
+void PoolCommunication::handleMessages()
+{
+    m_socket->onMessage([this](const std::string &message) {
+        //std::cout << "Received message: " << message << std::endl;
+
+        try
+        {
+            const auto poolMessage = parsePoolMessage(message);
+
+            if (std::holds_alternative<JobMessage>(poolMessage))
+            {
+                const auto job = std::get<JobMessage>(poolMessage).job;
+
+                if (m_onNewJob)
+                {
+                    m_onNewJob(job);
+                }
+            }
+            else if (std::holds_alternative<ShareAcceptedMessage>(poolMessage))
+            {
+                const auto shareAccepted = std::get<ShareAcceptedMessage>(poolMessage);
+
+                if (shareAccepted.status == "OK" && m_onHashAccepted)
+                {
+                    m_onHashAccepted(shareAccepted.ID);
+                }
+            }
+            else if (std::holds_alternative<ErrorMessage>(poolMessage))
+            {
+                const auto error = std::get<ErrorMessage>(poolMessage).error.errorMessage;
+
+                std::cout << InformationMsg("Error message received from pool: ") << WarningMsg(error) << std::endl;
+
+                if (error == "Low difficulty share")
+                {
+                    std::cout << WarningMsg("Please ensure you are using the correct mining algorithm for this pool.") << std::endl;
+                }
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cout << WarningMsg(e.what()) << std::endl;
+        }
+    });
 }

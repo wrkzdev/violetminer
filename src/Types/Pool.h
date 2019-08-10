@@ -22,4 +22,7 @@ struct Pool
 
     /* Optional rig identifier */
     std::string rigID;
+
+    /* The string we use to authenticate us once we have logged in */
+    std::string loginID;
 };

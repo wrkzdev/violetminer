@@ -13,6 +13,9 @@ add_subdirectory(MinerManager)
 # Add the PoolCommunication directory to add that library
 add_subdirectory(PoolCommunication)
 
+# Add the Types directory to add that library
+add_subdirectory(Types)
+
 # Add the Utilities directory to add that library
 add_subdirectory(Utilities)
 
@@ -24,6 +27,8 @@ target_include_directories(MinerManager PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Add the PoolCommunication directory as an include directory, so we can #include "PoolCommunication/PoolCommunication.h"
 target_include_directories(PoolCommunication PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+
+target_include_directories(Types PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Add the PoolCommunication directory as an include directory, so we can #include "Utilities/ColouredMsg.h"
 target_include_directories(Utilities PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

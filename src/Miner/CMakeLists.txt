@@ -66,4 +66,5 @@ target_link_libraries(violetminer
     Blake2
     MinerManager
     PoolCommunication
+    Types
     Utilities)

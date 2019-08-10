@@ -5,9 +5,10 @@
 #pragma once
 
 #include <memory>
-
+#include <random>
 #include <thread>
 
+#include "MinerManager/HashManager.h"
 #include "PoolCommunication/PoolCommunication.h"
 #include "Types/IHashingAlgorithm.h"
 
@@ -31,7 +32,9 @@ class MinerManager
   private:
 
     /* PRIVATE METHODS */
-    void hash();
+    void hash(uint32_t threadNumber);
+
+    void printStats();
 
     /* PRIVATE VARIABLES */
     std::vector<std::thread> m_threads;
@@ -49,7 +52,25 @@ class MinerManager
     /* Pool connection */
     const std::shared_ptr<PoolCommunication> m_pool;
 
-    std::atomic<uint64_t> m_hashes = 0;
+    /* Handles submitting shares and tracking hashrate statistics */
+    HashManager m_hashManager;
 
-    std::chrono::time_point<std::chrono::high_resolution_clock> m_startTime;
+    /* Current job to be working on */
+    Job m_currentJob;
+
+    /* Nonce to begin hashing at */
+    uint32_t m_nonce;
+
+    /* Handles creating random nonces */
+    std::random_device m_device;
+
+    std::mt19937 m_gen;
+
+    std::uniform_int_distribution<uint32_t> m_distribution {0, std::numeric_limits<uint32_t>::max()};
+
+    /* A bool for each thread indicating if they should swap to a new job */
+    std::vector<bool> m_newJobAvailable;
+
+    /* Thread that periodically prints hashrate, etc */
+    std::thread m_statsThread;
 };

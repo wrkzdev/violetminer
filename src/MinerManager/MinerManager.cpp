@@ -7,6 +7,11 @@
 //////////////////////////////////////
 
 #include <iostream>
+#include <sstream>
+#include <iomanip>
+
+#include "Utilities/ColouredMsg.h"
+#include "Utilities/Utilities.h"
 
 MinerManager::MinerManager(
     const std::shared_ptr<PoolCommunication> pool,
@@ -14,7 +19,9 @@ MinerManager::MinerManager(
     const uint32_t threadCount):
     m_pool(pool),
     m_algorithmGenerator(algorithmGenerator),
-    m_threadCount(threadCount)
+    m_threadCount(threadCount),
+    m_hashManager(pool),
+    m_gen(m_device())
 {
 }
 
@@ -26,13 +33,30 @@ MinerManager::~MinerManager()
 void MinerManager::start()
 {
     m_shouldStop = false;
+    m_currentJob = m_pool->getJob();
+    m_nonce = m_distribution(m_gen);
+    m_newJobAvailable = std::vector(m_threadCount, false);
 
-    m_startTime = std::chrono::high_resolution_clock::now();
-
-    for (int i = 0; i < m_threadCount; i++)
+    for (uint32_t i = 0; i < m_threadCount; i++)
     {
-        m_threads.push_back(std::thread(&MinerManager::hash, this));
+        m_threads.push_back(std::thread(&MinerManager::hash, this, i));
     }
+
+    m_statsThread = std::thread(&MinerManager::printStats, this);
+
+    m_pool->onNewJob([this](const Job &job){
+        m_nonce = m_distribution(m_gen);
+        m_currentJob = job;
+        m_newJobAvailable = std::vector(m_threadCount, true);
+        m_pool->printPool();
+        std::cout << InformationMsg("New job, diff ") << SuccessMsg(job.shareDifficulty) << std::endl;
+    });
+
+    m_pool->onHashAccepted([this](const std::string &){
+        m_hashManager.shareAccepted();
+    });
+
+    m_pool->handleMessages();
 }
 
 void MinerManager::stop()
@@ -48,42 +72,51 @@ void MinerManager::stop()
     }
 
     m_threads.clear();
+
+    if (m_statsThread.joinable())
+    {
+        m_statsThread.join();
+    }
 }
 
-void MinerManager::hash()
+void MinerManager::hash(uint32_t threadNumber)
 {
     std::shared_ptr<IHashingAlgorithm> algorithm = m_algorithmGenerator();
 
     /* Let the algorithm perform any neccessary initialization */
     algorithm->init();
 
-    const std::vector<uint8_t> chukwaInput = {
-        1, 0, 251, 142, 138, 200, 5, 137, 147, 35, 55, 27, 183, 144, 219, 25,
-        33, 138, 253, 141, 184, 227, 117, 93, 139, 144, 243, 155, 61, 85, 6,
-        169, 171, 206, 79, 169, 18, 36, 69, 0, 0, 0, 0, 238, 129, 70, 212, 159,
-        169, 62, 231, 36, 222, 181, 125, 18, 203, 198, 198, 243, 185, 36, 217,
-        70, 18, 124, 122, 151, 65, 143, 147, 72, 130, 143, 15, 2
-    };
-
     while (!m_shouldStop)
     {
-        const auto hash = algorithm->hash(chukwaInput);
-        m_hashes++;
+        /* Offset the nonce by our thread number so each thread has an individual
+           nonce */
+        uint32_t localNonce = m_nonce + threadNumber;
 
-        if (m_hashes % 5000 == 0)
+        std::vector<uint8_t> job = m_currentJob.rawBlob;
+
+        std::memcpy(job.data() + 39, &localNonce, sizeof(uint32_t));
+
+        while (!m_newJobAvailable[threadNumber])
         {
-            std::cout << "Total hashes: " << m_hashes << ", hashrate: ";
+            const auto hash = algorithm->hash(job);
 
-            auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::high_resolution_clock::now() - m_startTime
-            ).count();
+            m_hashManager.submitHash(hash, m_currentJob.jobID, localNonce, m_currentJob.target);
 
-            if (seconds == 0)
-            {
-                seconds = 1;
-            }
+            localNonce += m_threadCount;
 
-            std::cout << m_hashes / seconds << " H/s" << std::endl;
+            std::memcpy(job.data() + 39, &localNonce, sizeof(uint32_t));
         }
+
+        /* Switch to new job. */
+        m_newJobAvailable[threadNumber] = false;
+    }
+}
+
+void MinerManager::printStats()
+{
+    while (!m_shouldStop)
+    {
+        Utilities::sleepUnlessStopping(std::chrono::seconds(10), m_shouldStop);
+        m_hashManager.printStats();
     }
 }
