@@ -121,7 +121,7 @@ void MinerManager::printStats()
 {
     while (!m_shouldStop)
     {
-        Utilities::sleepUnlessStopping(std::chrono::seconds(10), m_shouldStop);
+        Utilities::sleepUnlessStopping(std::chrono::seconds(20), m_shouldStop);
         m_hashManager.printStats();
     }
 }
