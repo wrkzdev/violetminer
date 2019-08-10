@@ -40,6 +40,9 @@ void MinerManager::start()
     /* Get the initial job to work on */
     m_currentJob = m_pool->getJob();
 
+    m_pool->printPool();
+    std::cout << InformationMsg("New job, diff ") << SuccessMsg(m_currentJob.shareDifficulty) << std::endl;
+
     /* Set initial nonce */
     m_nonce = m_distribution(m_gen);
 
@@ -77,6 +80,7 @@ void MinerManager::stop()
 {
     m_shouldStop = true;
 
+    /* Wait for all the threads to stop */
     for (auto &thread : m_threads)
     {
         if (thread.joinable())
@@ -85,12 +89,17 @@ void MinerManager::stop()
         }
     }
 
+    /* Empty the threads vector for later re-creation */
     m_threads.clear();
 
+    /* Wait for the stats thread to stop */
     if (m_statsThread.joinable())
     {
         m_statsThread.join();
     }
+
+    /* Close the socket connection to the pool */
+    m_pool->logout();
 }
 
 void MinerManager::hash(uint32_t threadNumber)

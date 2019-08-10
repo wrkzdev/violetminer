@@ -15,10 +15,16 @@ class PoolCommunication
   public:
     PoolCommunication(const std::vector<Pool> pools);
 
+    /* Open socket and connect to one of the pools */
     void login();
 
+    /* Close current socket connection */
+    void logout();
+
+    /* Get the next job */
     Job getJob();
 
+    /* Submit a *valid* share to the pool. */
     void submitShare(
         const std::vector<uint8_t> &hash,
         const std::string jobID,

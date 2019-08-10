@@ -64,6 +64,11 @@ void PoolCommunication::printPool()
     std::cout << InformationMsg(formatPool(m_currentPool));
 }
 
+void PoolCommunication::logout()
+{
+    m_socket->stop();
+}
+
 void PoolCommunication::login()
 {
     while (true)
@@ -76,7 +81,7 @@ void PoolCommunication::login()
 
             std::stringstream stream;
 
-            std::cout << InformationMsg(formatPool(pool)) << "Attempting to connect to pool..." << std::endl;
+            std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Attempting to connect to pool...") << std::endl;
 
             for (int i = 1; i <= Constants::MAX_LOGIN_ATTEMPTS; i++)
             {
