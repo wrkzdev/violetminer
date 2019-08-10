@@ -104,8 +104,6 @@ void PoolCommunication::login()
                 {
                     try
                     {
-                        std::cout << "Got message: " << *res << std::endl;
-
                         const LoginMessage message = nlohmann::json::parse(*res);
 
                         std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Logged in.") << std::endl;

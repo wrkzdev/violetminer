@@ -6,15 +6,20 @@
 #include "ArgonVariants/Argon2Hash.h"
 /////////////////////////////////////
 
-void Argon2Hash::init()
+void Argon2Hash::init(std::vector<uint8_t> &initialInput)
 {
     return;
 }
 
-std::vector<uint8_t> Argon2Hash::hash(std::vector<uint8_t> input)
+/* Salt is not altered by nonce. We can initialize it once per job here. */
+void Argon2Hash::reinit(const std::vector<uint8_t> &input)
 {
-    std::vector<uint8_t> salt(input.begin(), input.begin() + m_saltLength);
-    return m_argonInstance.Hash(input, salt);
+    m_salt = std::vector<uint8_t>(input.begin(), input.begin() + m_saltLength);
+}
+
+std::vector<uint8_t> Argon2Hash::hash(std::vector<uint8_t> &input)
+{
+    return m_argonInstance.Hash(input, m_salt);
 }
 
 Argon2Hash::Argon2Hash(

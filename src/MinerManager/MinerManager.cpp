@@ -83,8 +83,8 @@ void MinerManager::hash(uint32_t threadNumber)
 {
     std::shared_ptr<IHashingAlgorithm> algorithm = m_algorithmGenerator();
 
-    /* Let the algorithm perform any neccessary initialization */
-    algorithm->init();
+    /* Let the algorithm perform any necessary initialization */
+    algorithm->init(m_currentJob.rawBlob);
 
     while (!m_shouldStop)
     {
@@ -95,6 +95,11 @@ void MinerManager::hash(uint32_t threadNumber)
         std::vector<uint8_t> job = m_currentJob.rawBlob;
 
         std::memcpy(job.data() + 39, &localNonce, sizeof(uint32_t));
+
+        /* Allow the algorithm to reinitialize for the new round, as some algorithms
+           can avoid reinitializing each round. For example, we can calculate
+           the salt once per job, and cache it. */
+        algorithm->reinit(job);
 
         while (!m_newJobAvailable[threadNumber])
         {

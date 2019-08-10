@@ -17,13 +17,17 @@ class Argon2Hash : virtual public IHashingAlgorithm
         const uint32_t saltLength,
         const Constants::ArgonVariant variant);
 
-    virtual void init();
+    virtual void init(std::vector<uint8_t> &initialInput);
 
-    virtual std::vector<uint8_t> hash(std::vector<uint8_t> input);
+    virtual void reinit(const std::vector<uint8_t> &input);
+
+    virtual std::vector<uint8_t> hash(std::vector<uint8_t> &input);
 
   private:
 
     Argon2 m_argonInstance;
 
     const uint32_t m_saltLength;
+
+    std::vector<uint8_t> m_salt;
 };
