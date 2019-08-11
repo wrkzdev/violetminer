@@ -68,16 +68,16 @@ void HashManager::printStats()
 
     m_pool->printPool();
 
-    std::cout << InformationMsg("Hashrate: ");
+    std::cout << WhiteMsg("Hashrate: ");
 
     if (milliseconds != 0 && m_totalHashes != 0)
     {
         const double hashratePerSecond = (1000 * static_cast<double>(m_totalHashes) / milliseconds);
-        std::cout << SuccessMsg(hashratePerSecond) << SuccessMsg(" H/s");
+        std::cout << WhiteMsg(hashratePerSecond) << WhiteMsg(" H/s") << std::endl;
     }
     else
     {
-        std::cout << SuccessMsg("N/A");
+        std::cout << WhiteMsg("N/A") << std::endl;
     }
 
     double submitPercentage = 0;
@@ -87,15 +87,9 @@ void HashManager::printStats()
         submitPercentage = 100 * (static_cast<double>(m_acceptedHashes) / m_submittedHashes);
     }
 
-    std::cout << InformationMsg(", Accepted shares percentage: ")
-              << std::fixed << std::setprecision(2);
+    m_pool->printPool();
 
-    if (submitPercentage > 90)
-    {
-        std::cout << SuccessMsg(submitPercentage) << SuccessMsg("%") << std::endl;
-    }
-    else
-    {
-        std::cout << WarningMsg(submitPercentage) << WarningMsg("%") << std::endl;
-    }
+    std::cout << WhiteMsg("Accepted shares percentage: ")
+              << std::fixed << std::setprecision(2)
+              << WhiteMsg(submitPercentage) << WhiteMsg("%") << std::endl;
 }

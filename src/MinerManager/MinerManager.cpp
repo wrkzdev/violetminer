@@ -41,7 +41,7 @@ void MinerManager::start()
     m_currentJob = m_pool->getJob();
 
     m_pool->printPool();
-    std::cout << InformationMsg("New job, diff ") << SuccessMsg(m_currentJob.shareDifficulty) << std::endl;
+    std::cout << WhiteMsg("New job, diff ") << WhiteMsg(m_currentJob.shareDifficulty) << std::endl;
 
     /* Set initial nonce */
     m_nonce = m_distribution(m_gen);
@@ -64,7 +64,7 @@ void MinerManager::start()
         m_currentJob = job;
         m_newJobAvailable = std::vector(m_threadCount, true);
         m_pool->printPool();
-        std::cout << InformationMsg("New job, diff ") << SuccessMsg(job.shareDifficulty) << std::endl;
+        std::cout << WhiteMsg("New job, diff ") << WhiteMsg(job.shareDifficulty) << std::endl;
     });
 
     /* Pass through accepted shares to the hash manager */

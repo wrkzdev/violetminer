@@ -89,3 +89,19 @@ template<typename T> class WarningMsg : public ColouredMsg<T>
 
     explicit WarningMsg(T msg, int padding): ColouredMsg<T>(msg, padding, Console::Color::BrightRed) {}
 };
+
+template<typename T> class WhiteMsg : public ColouredMsg<T>
+{
+  public:
+    explicit WhiteMsg(T msg): ColouredMsg<T>(msg, Console::Color::BrightWhite) {}
+
+    explicit WhiteMsg(T msg, int padding): ColouredMsg<T>(msg, padding, Console::Color::BrightWhite) {}
+};
+
+template<typename T> class PurpleMsg : public ColouredMsg<T>
+{
+  public:
+    explicit PurpleMsg(T msg): ColouredMsg<T>(msg, Console::Color::BrightMagenta) {}
+
+    explicit PurpleMsg(T msg, int padding): ColouredMsg<T>(msg, padding, Console::Color::BrightMagenta) {}
+};
