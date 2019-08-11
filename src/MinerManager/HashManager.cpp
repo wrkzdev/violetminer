@@ -7,6 +7,7 @@
 ////////////////////////////////////
 
 #include <iostream>
+#include <sstream>
 
 #include "Utilities/ColouredMsg.h"
 
