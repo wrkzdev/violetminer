@@ -176,21 +176,24 @@ void PoolCommunication::submitShare(
     m_socket->sendMessage(submitMsg.dump() + "\n");
 }
 
-void PoolCommunication::onNewJob(std::function<void(const Job &job)> callback)
+void PoolCommunication::onNewJob(const std::function<void(const Job &job)> callback)
 {
     m_onNewJob = callback;
 }
 
-void PoolCommunication::onHashAccepted(std::function<void(const std::string &shareID)> callback)
+void PoolCommunication::onHashAccepted(const std::function<void(const std::string &shareID)> callback)
 {
     m_onHashAccepted = callback;
+}
+
+void PoolCommunication::onPoolSwapped(const std::function<void(const Pool &pool)> callback)
+{
+    m_onPoolSwapped = callback;
 }
 
 void PoolCommunication::handleMessages()
 {
     m_socket->onMessage([this](const std::string &message) {
-        //std::cout << "Received message: " << message << std::endl;
-
         try
         {
             const auto poolMessage = parsePoolMessage(message);
@@ -229,4 +232,14 @@ void PoolCommunication::handleMessages()
             std::cout << WarningMsg(e.what()) << std::endl;
         }
     });
+}
+
+std::shared_ptr<IHashingAlgorithm> PoolCommunication::getMiningAlgorithm()
+{
+    return m_currentPool.algorithmGenerator();
+}
+
+std::string PoolCommunication::getAlgorithmName()
+{
+    return m_currentPool.algorithm;
 }

@@ -18,7 +18,6 @@ class MinerManager
     /* CONSTRUCTOR */
     MinerManager(
         const std::shared_ptr<PoolCommunication> pool,
-        const std::function<std::shared_ptr<IHashingAlgorithm>(void)> algorithmGenerator,
         const uint32_t threadCount);
 
     /* DESTRUCTOR */
@@ -36,6 +35,8 @@ class MinerManager
 
     void printStats();
 
+    void setNewJob(const Job &job);
+
     /* PRIVATE VARIABLES */
     std::vector<std::thread> m_threads;
 
@@ -44,10 +45,6 @@ class MinerManager
 
     /* Number of threads to launch */
     const uint32_t m_threadCount;
-
-    /* This function supplies us an instance of the hashing algorithm instance
-       each time it is called, so we can have one per thread */
-    const std::function<std::shared_ptr<IHashingAlgorithm>(void)> m_algorithmGenerator;
 
     /* Pool connection */
     const std::shared_ptr<PoolCommunication> m_pool;
@@ -73,4 +70,7 @@ class MinerManager
 
     /* Thread that periodically prints hashrate, etc */
     std::thread m_statsThread;
+
+    /* The algorithm we are currently using with the current pool */
+    std::string m_currentAlgorithm;
 };

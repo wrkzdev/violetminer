@@ -73,6 +73,47 @@ Pool getPool()
 
     pool.password = password;
 
+    while (true)
+    {
+        std::cout << InformationMsg("Available mining algorithms:") << std::endl;
+
+        for (const auto [algorithm, hashingFunc] : ArgonVariant::Algorithms)
+        {
+            std::cout << SuccessMsg("* ") << SuccessMsg(algorithm) << std::endl;
+        }
+
+        std::cout << InformationMsg("\nEnter the algorithm you wish to mine with on this pool: ");
+
+        std::string algorithm;
+
+        std::getline(std::cin, algorithm);
+
+        Utilities::trim(algorithm);
+
+        std::transform(algorithm.begin(), algorithm.end(), algorithm.begin(), ::tolower);
+
+        const auto it = std::find_if(
+            ArgonVariant::Algorithms.begin(), 
+            ArgonVariant::Algorithms.end(),
+            [&algorithm](const auto algo)
+        {
+            std::string theirAlgo = algo.first;
+            std::transform(theirAlgo.begin(), theirAlgo.end(), theirAlgo.begin(), ::tolower);
+            return theirAlgo == algorithm;
+        });
+
+        if (it != ArgonVariant::Algorithms.end())
+        {
+            pool.algorithm = it->first;
+            pool.algorithmGenerator = it->second;
+            break;
+        }
+        else
+        {
+            std::cout << WarningMsg("Unknown algorithm \"" + algorithm + "\". Try again.") << std::endl;
+        }
+    }
+
     std::cout << InformationMsg("\nEnter the rig ID to use with this pool. This can identify your different computers to the pool.") << std::endl
               << InformationMsg("You can leave this blank if desired: ");
 
@@ -114,6 +155,7 @@ std::vector<Pool> getDevPools()
     pool1.host = "127.0.0.1";
     pool1.port = 5555;
     pool1.username = "TRTLv2Fyavy8CXG8BPEbNeCHFZ1fuDCYCZ3vW5H5LXN4K2M2MHUpTENip9bbavpHvvPwb4NDkBWrNgURAd5DB38FHXWZyoBh4wW";
+    pool1.algorithm = "chukwa";
 
     pools.push_back(pool1);
 
@@ -133,8 +175,8 @@ int main()
     const auto devPoolManager = std::make_shared<PoolCommunication>(devPools);
 
     /* Setup a manager for the user pools and the dev pools */
-    MinerManager userMinerManager(userPoolManager, ArgonVariant::chukwa, std::thread::hardware_concurrency());
-    MinerManager devMinerManager(devPoolManager, ArgonVariant::chukwa, std::thread::hardware_concurrency());
+    MinerManager userMinerManager(userPoolManager, std::thread::hardware_concurrency());
+    MinerManager devMinerManager(devPoolManager, std::thread::hardware_concurrency());
 
     /* A cycle lasts 100 minutes */
     const auto cycleLength = std::chrono::minutes(100);

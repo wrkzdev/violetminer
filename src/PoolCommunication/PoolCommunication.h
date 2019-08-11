@@ -39,8 +39,16 @@ class PoolCommunication
     /* Register a function to call when a share is accepted */
     void onHashAccepted(const std::function<void(const std::string &shareID)>);
 
+    void onPoolSwapped(const std::function<void(const Pool &pool)>);
+
     /* Prints the currently connected pool for formatting purposes */
     void printPool();
+
+    /* Gets the algorithm to use for the current pool */
+    std::shared_ptr<IHashingAlgorithm> getMiningAlgorithm();
+
+    /* Gets the name of the current algorithm */
+    std::string getAlgorithmName();
 
   private:
     /* The current pool we are connected to */
@@ -64,4 +72,7 @@ class PoolCommunication
 
     /* We call this callback every time the pool accepts one of our shares */
     std::function<void(const std::string &shareID)> m_onHashAccepted;
+
+    /* We call this callback every time we change pools */
+    std::function<void(const Pool &pool)> m_onPoolSwapped;
 };

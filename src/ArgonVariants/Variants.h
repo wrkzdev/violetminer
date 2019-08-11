@@ -21,4 +21,10 @@ namespace ArgonVariant
             Constants::ARGON2ID
         );
     };
+
+    std::unordered_map<std::string, std::function<std::shared_ptr<IHashingAlgorithm>(void)>> Algorithms
+    {
+        { "chukwa", chukwa },
+        { "turtlecoin", chukwa }
+    };
 }
