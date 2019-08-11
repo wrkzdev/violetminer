@@ -195,34 +195,32 @@ void PoolCommunication::handleMessages()
         {
             const auto poolMessage = parsePoolMessage(message);
 
-            if (std::holds_alternative<JobMessage>(poolMessage))
+            if (auto job = std::get_if<JobMessage>(&poolMessage))
             {
-                const auto job = std::get<JobMessage>(poolMessage).job;
-                m_currentJob = job;
+                m_currentJob = job->job;
 
                 if (m_onNewJob)
                 {
-                    m_onNewJob(job);
+                    m_onNewJob(job->job);
                 }
             }
-            else if (std::holds_alternative<ShareAcceptedMessage>(poolMessage))
+            else if (auto shareAccepted = std::get_if<ShareAcceptedMessage>(&poolMessage))
             {
-                const auto shareAccepted = std::get<ShareAcceptedMessage>(poolMessage);
-
-                if (shareAccepted.status == "OK" && m_onHashAccepted)
+                if (shareAccepted->status == "OK" && m_onHashAccepted)
                 {
-                    m_onHashAccepted(shareAccepted.ID);
+                    m_onHashAccepted(shareAccepted->ID);
                 }
             }
-            else if (std::holds_alternative<ErrorMessage>(poolMessage))
+            else if (auto error = std::get_if<ErrorMessage>(&poolMessage))
             {
-                const auto error = std::get<ErrorMessage>(poolMessage).error.errorMessage;
+                const auto errorMessage = error->error.errorMessage;
 
-                std::cout << InformationMsg("Error message received from pool: ") << WarningMsg(error) << std::endl;
+                std::cout << InformationMsg("Error message received from pool: ") << WarningMsg(errorMessage) << std::endl;
 
-                if (error == "Low difficulty share")
+                if (errorMessage == "Low difficulty share")
                 {
-                    std::cout << WarningMsg("Please ensure you are using the correct mining algorithm for this pool.") << std::endl;
+                    std::cout << WarningMsg("Probably a stale job, unless you are only getting rejected shares") << std::endl
+                              << WarningMsg("If this is the case, ensure you are using the correct mining algorithm for this pool.") << std::endl;
                 }
             }
         }
