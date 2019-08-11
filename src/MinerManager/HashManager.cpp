@@ -72,7 +72,7 @@ void HashManager::printStats()
 
     if (milliseconds != 0 && m_totalHashes != 0)
     {
-        const double hashratePerSecond = (1000 * m_totalHashes / milliseconds);
+        const double hashratePerSecond = (1000 * static_cast<double>(m_totalHashes) / milliseconds);
         std::cout << SuccessMsg(hashratePerSecond) << SuccessMsg(" H/s");
     }
     else

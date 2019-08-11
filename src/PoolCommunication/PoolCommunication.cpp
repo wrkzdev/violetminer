@@ -121,7 +121,7 @@ void PoolCommunication::login()
                         return;
 
                     }
-                    catch (const std::exception &e)
+                    catch (const std::exception &)
                     {
                         try
                         {
