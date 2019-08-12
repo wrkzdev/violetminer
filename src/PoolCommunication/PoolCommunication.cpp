@@ -117,6 +117,10 @@ void PoolCommunication::registerHandlers()
                     std::cout << WarningMsg("Probably a stale job, unless you are only getting rejected shares") << std::endl
                               << WarningMsg("If this is the case, ensure you are using the correct mining algorithm for this pool.") << std::endl;
                 }
+                else if (errorMessage == "Invalid nonce; is miner not compatible with NiceHash?")
+                {
+                    std::cout << WarningMsg("Make sure \"niceHash\" is set to true in your config file.") << std::endl;
+                }
             }
             else
             {
@@ -192,7 +196,7 @@ void PoolCommunication::login()
 
                         std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Logged in.") << std::endl;
 
-                        if (message.job.nonce != 0)
+                        if (*message.job.nonce() != 0)
                         {
                             pool.niceHash = true;
                         }

@@ -47,8 +47,15 @@ struct Job
 
     std::optional<uint8_t> rootMinorVersion;
 
-    /* Nonce value. Either zero or nice hash controlled. */
-    uint32_t nonce;
+    inline uint32_t *nonce()
+    {
+        return reinterpret_cast<uint32_t *>(rawBlob.data() + 39);
+    }
+
+    inline const uint32_t *nonce() const
+    {
+        return reinterpret_cast<const uint32_t *>(rawBlob.data() + 39);
+    }
 };
 
 struct PoolMessage
@@ -175,8 +182,6 @@ inline void from_json(const nlohmann::json &j, Job &job)
     {
         job.rootMinorVersion = j.at("rootMinorVersion").get<uint8_t>();
     }
-
-    job.nonce = *reinterpret_cast<uint32_t *>(job.rawBlob.data() + 39);
 }
 
 inline void from_json(const nlohmann::json &j, PoolMessage &p)

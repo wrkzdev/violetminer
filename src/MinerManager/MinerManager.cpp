@@ -200,48 +200,49 @@ void MinerManager::hash(uint32_t threadNumber)
            nonce */
         uint32_t localNonce = m_nonce + threadNumber;
 
-        uint32_t nonce = localNonce;
-
-        std::vector<uint8_t> job = m_currentJob.rawBlob;
+        Job job = m_currentJob;
 
         /* If nicehash mode is enabled, we are only allowed to alter 3 bytes
-           in the nonce, instead of four. The fourth is reserved for nicehash
+           in the nonce, instead of four. The first byte is reserved for nicehash
            to do with as they like.
-           For this reason, we take the bottom 3 bytes of localNonce, treating
-           it as a 24 bit number, and copy those into the top 3 bytes of the
-           nonce, leaving the bottom byte untouched. This allows incrementing
-           to stay simple with just a += threadNumber.
-           See further https://github.com/nicehash/Specifications/blob/master/NiceHash_CryptoNight_modification_v1.0.txt */
+           To achieve this, we wipe the top byte (localNonce & 0x00FFFFFF) of
+           local nonce. We then wipe the bottom 3 bytes of job.nonce
+           (*job.nonce() & 0xFF000000). Finally, we and them together, so the
+           top byte of the nonce is reserved for nicehash.
+           See further https://github.com/nicehash/Specifications/blob/master/NiceHash_CryptoNight_modification_v1.0.txt
+           Note that the above specification indicates that the final byte of
+           the nonce is reserved, but in fact it is the first byte that is 
+           reserved. */
         if (isNiceHash)
         {
-            nonce = (localNonce << 8) | (m_currentJob.nonce & 0x000000ff);
+            *job.nonce() = (localNonce & 0x00FFFFFF) | (*job.nonce() & 0xFF000000);
         }
-
-        std::memcpy(job.data() + 39, &nonce, 4);
+        else
+        {
+            *job.nonce() = localNonce;
+        }
 
         /* Allow the algorithm to reinitialize for the new round, as some algorithms
            can avoid reinitializing each round. For example, we can calculate
            the salt once per job, and cache it. */
-        algorithm->reinit(job);
+        algorithm->reinit(job.rawBlob);
 
         while (!m_newJobAvailable[threadNumber])
         {
-            const auto hash = algorithm->hash(job);
+            const auto hash = algorithm->hash(job.rawBlob);
 
-            m_hashManager.submitHash(hash, m_currentJob.jobID, nonce, m_currentJob.target);
+            m_hashManager.submitHash(hash, job.jobID, *job.nonce(), job.target);
 
             localNonce += m_threadCount;
 
             if (isNiceHash)
             {
-                nonce = (localNonce << 8) | (m_currentJob.nonce & 0x000000ff);
+                *job.nonce() = (localNonce & 0x00FFFFFF) | (*job.nonce() & 0xFF000000);
             }
             else
             {
-                nonce = localNonce;
+                *job.nonce() = localNonce;
             }
-
-            std::memcpy(job.data() + 39, &nonce, 4);
         }
 
         /* Switch to new job. */
