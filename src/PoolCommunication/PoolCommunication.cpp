@@ -85,10 +85,14 @@ void PoolCommunication::logout()
 
 void PoolCommunication::registerHandlers()
 {
-    m_socket->onMessage([this](const std::string &message) {
+    m_socket->onMessage([this](std::string message) {
         try
         {
-            if (message == "" || message == "\n")
+            Utilities::trim(message);
+            Utilities::removeCharFromString(message, '\n');
+            Utilities::removeCharFromString(message, '\0');
+
+            if (message == "")
             {
                 return;
             }
@@ -179,13 +183,14 @@ void PoolCommunication::login()
                     continue;
                 }
 
+                
                 const nlohmann::json loginMsg = {
                     {"method", "login"},
                     {"params", {
                         {"login", pool.username},
                         {"pass", pool.password},
                         {"rigid", pool.rigID},
-                        {"agent", pool.agent}
+                        {"agent", pool.getAgent()}
                     }},
                     {"id", 1},
                     {"jsonrpc", "2.0"}
@@ -269,7 +274,8 @@ void PoolCommunication::submitShare(
             {"job_id", jobID},
             {"nonce", Utilities::toHex(nonce)},
             {"result", Utilities::toHex(hash)},
-            {"rig_id", m_currentPool.rigID},
+            {"rigid", m_currentPool.rigID},
+            {"agent", m_currentPool.getAgent()},
         }},
         {"id", 1}
     };

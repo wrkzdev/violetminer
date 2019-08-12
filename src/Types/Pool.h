@@ -43,14 +43,15 @@ struct Pool
 
     /* Gets an instance of the mining algorithm used for this pool */
     std::function<std::shared_ptr<IHashingAlgorithm>(void)> algorithmGenerator;
+
+    inline std::string getAgent()
+    {
+        return agent == "" ? "violetminer-" + Constants::VERSION : agent;
+    }
 };
 
 inline void to_json(nlohmann::json &j, const Pool &pool)
 {
-    const std::string agent = pool.agent == "" 
-        ? "violetminer-" + Constants::VERSION
-        : pool.agent;
-
     j = {
         {"host", pool.host},
         {"port", pool.port},
@@ -58,7 +59,7 @@ inline void to_json(nlohmann::json &j, const Pool &pool)
         {"password", pool.password},
         {"rigID", pool.rigID},
         {"algorithm", pool.algorithm},
-        {"agent", agent},
+        {"agent", pool.agent},
         {"niceHash", pool.niceHash}
     };
 }
