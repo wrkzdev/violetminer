@@ -88,6 +88,11 @@ void PoolCommunication::registerHandlers()
     m_socket->onMessage([this](const std::string &message) {
         try
         {
+            if (message == "" || message == "\n")
+            {
+                return;
+            }
+
             const auto poolMessage = parsePoolMessage(message);
 
             if (auto job = std::get_if<JobMessage>(&poolMessage))
