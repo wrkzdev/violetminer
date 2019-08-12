@@ -207,7 +207,7 @@ void MinerManager::hash(uint32_t threadNumber)
            to do with as they like.
            To achieve this, we wipe the top byte (localNonce & 0x00FFFFFF) of
            local nonce. We then wipe the bottom 3 bytes of job.nonce
-           (*job.nonce() & 0xFF000000). Finally, we and them together, so the
+           (*job.nonce() & 0xFF000000). Finally, we AND them together, so the
            top byte of the nonce is reserved for nicehash.
            See further https://github.com/nicehash/Specifications/blob/master/NiceHash_CryptoNight_modification_v1.0.txt
            Note that the above specification indicates that the final byte of
