@@ -47,6 +47,10 @@ struct Pool
 
 inline void to_json(nlohmann::json &j, const Pool &pool)
 {
+    const std::string agent = pool.agent == "" 
+        ? "violetminer-" + Constants::VERSION
+        : pool.agent;
+
     j = {
         {"host", pool.host},
         {"port", pool.port},
@@ -54,7 +58,7 @@ inline void to_json(nlohmann::json &j, const Pool &pool)
         {"password", pool.password},
         {"rigID", pool.rigID},
         {"algorithm", pool.algorithm},
-        {"agent", pool.agent},
+        {"agent", agent},
         {"niceHash", pool.niceHash}
     };
 }
