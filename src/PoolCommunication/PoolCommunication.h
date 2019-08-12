@@ -49,16 +49,16 @@ class PoolCommunication
     void onPoolDisconnected(const std::function<void(void)>);
 
     /* Prints the currently connected pool for formatting purposes */
-    void printPool();
+    void printPool() const;
 
     /* Gets the algorithm to use for the current pool */
-    std::shared_ptr<IHashingAlgorithm> getMiningAlgorithm();
+    std::shared_ptr<IHashingAlgorithm> getMiningAlgorithm() const;
 
     /* Gets the name of the current algorithm */
-    std::string getAlgorithmName();
+    std::string getAlgorithmName() const;
 
     /* Whether we should use nicehash style nonces */
-    const bool isNiceHash();
+    bool isNiceHash() const;
 
   private:
     /* Connect to pools when necessary */
@@ -70,7 +70,7 @@ class PoolCommunication
     Pool m_currentPool;
 
     /* All the pools available to connect to */
-    const std::vector<Pool> m_allPools;
+    std::vector<Pool> m_allPools;
 
     /* The socket instance for the pool we are talking to */
     std::shared_ptr<sockwrapper::SocketWrapper> m_socket;

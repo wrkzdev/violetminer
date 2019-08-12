@@ -59,7 +59,7 @@ void loginFailed(
     std::this_thread::sleep_for(std::chrono::milliseconds(Constants::POOL_LOGIN_RETRY_INTERVAL));
 }
 
-void PoolCommunication::printPool()
+void PoolCommunication::printPool() const
 {
     std::cout << InformationMsg(formatPool(m_currentPool));
 }
@@ -150,7 +150,7 @@ void PoolCommunication::login()
 {
     while (true)
     {
-        for (const auto &pool : m_allPools)
+        for (auto &pool : m_allPools)
         {
             m_socket = std::make_shared<sockwrapper::SocketWrapper>(
                 pool.host.c_str(), pool.port, '\n', Constants::POOL_LOGIN_RETRY_INTERVAL / 1000
@@ -192,11 +192,17 @@ void PoolCommunication::login()
 
                         std::cout << InformationMsg(formatPool(pool)) << SuccessMsg("Logged in.") << std::endl;
 
+                        if (message.job.nonce != 0)
+                        {
+                            pool.niceHash = true;
+                        }
+
                         m_currentPool = pool;
                         m_currentPool.loginID = message.loginID;
                         m_preferredPool = i == 1;
                         m_currentJob = message.job;
 
+                        
                         registerHandlers();
 
                         if (m_onPoolSwapped)
@@ -319,17 +325,17 @@ void PoolCommunication::managePools()
     }
 }
 
-std::shared_ptr<IHashingAlgorithm> PoolCommunication::getMiningAlgorithm()
+std::shared_ptr<IHashingAlgorithm> PoolCommunication::getMiningAlgorithm() const
 {
     return m_currentPool.algorithmGenerator();
 }
 
-std::string PoolCommunication::getAlgorithmName()
+std::string PoolCommunication::getAlgorithmName() const
 {
     return m_currentPool.algorithm;
 }
 
-const bool PoolCommunication::isNiceHash()
+bool PoolCommunication::isNiceHash() const
 {
     return m_currentPool.niceHash;
 }
