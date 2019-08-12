@@ -4,18 +4,18 @@
 #include "Console.h"
 
 #include <stdio.h>
+#include <iostream>
 
 #ifdef _WIN32
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
 
-#include <Windows.h>
-#include <io.h>
-
+    #include <Windows.h>
+    #include <io.h>
 #else
-#include <iostream>
-#include <unistd.h>
+    #include <iostream>
+    #include <unistd.h>
 #endif
 
 namespace Console
