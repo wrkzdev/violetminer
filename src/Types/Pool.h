@@ -33,7 +33,7 @@ struct Pool
     std::string algorithm;
 
     /* Custom user agent */
-    std::string agent = "violetminer-" + Constants::VERSION;
+    std::string agent;
 
     /* The string we use to authenticate us once we have logged in */
     std::string loginID;

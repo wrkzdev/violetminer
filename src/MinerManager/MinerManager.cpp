@@ -120,6 +120,9 @@ void MinerManager::resumeMining()
     {
         m_threads.push_back(std::thread(&MinerManager::hash, this, i));
     }
+
+    /* Launch off the thread to print stats regularly */
+    m_statsThread = std::thread(&MinerManager::printStats, this);
 }
 
 void MinerManager::pauseMining()
@@ -140,6 +143,11 @@ void MinerManager::pauseMining()
         {
             thread.join();
         }
+    }
+
+    if (m_statsThread.joinable())
+    {
+        m_statsThread.join();
     }
 
     /* Empty the threads vector for later re-creation */

@@ -262,7 +262,7 @@ void PoolCommunication::submitShare(
             {"result", Utilities::toHex(hash)},
             {"rig_id", m_currentPool.rigID},
         }},
-        {"id", "1"}
+        {"id", 1}
     };
 
     m_socket->sendMessage(submitMsg.dump() + "\n");
