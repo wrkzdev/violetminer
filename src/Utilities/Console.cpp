@@ -3,8 +3,9 @@
 
 #include "Console.h"
 
-#include <stdio.h>
 #include <iostream>
+#include <stdio.h>
+#include <string>
 
 #ifdef _WIN32
     #ifndef NOMINMAX
