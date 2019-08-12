@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <memory>
+#include <unordered_map>
 
 #include "ArgonVariants/Argon2Hash.h"
 #include "Types/IHashingAlgorithm.h"
