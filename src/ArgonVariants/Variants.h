@@ -6,7 +6,7 @@
 
 #include <functional>
 #include <memory>
-#include <unordered_map>
+#include <map>
 
 #include "ArgonVariants/Argon2Hash.h"
 #include "Types/IHashingAlgorithm.h"
@@ -33,7 +33,7 @@ namespace ArgonVariant
         );
     };
 
-    inline std::unordered_map<std::string, std::function<std::shared_ptr<IHashingAlgorithm>(void)>> Algorithms
+    inline std::map<std::string, std::function<std::shared_ptr<IHashingAlgorithm>(void)>> Algorithms
     {
         { "chukwa", chukwa },
         { "turtlecoin", chukwa },
