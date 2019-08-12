@@ -1,3 +1,5 @@
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Argon2/src")
+
 # Add the ArgonVariants directory to add that library
 add_subdirectory(ArgonVariants)
 
@@ -19,16 +21,17 @@ add_subdirectory(Types)
 # Add the Utilities directory to add that library
 add_subdirectory(Utilities)
 
-# Add the Argon2 directory so ArgonVariants can include it. Probably a better way to do this.
-target_include_directories(ArgonVariants PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Argon2/src")
+# Add the current directory as an include directory for ArgonVariants
+target_include_directories(ArgonVariants PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Add the MinerManager directory as an include directory, so we can #include "MinerManager/MinerManager.h"
+# Add the current directory as an include directory for MinerManager
 target_include_directories(MinerManager PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Add the PoolCommunication directory as an include directory, so we can #include "PoolCommunication/PoolCommunication.h"
+# Add the current directory as an include directory for PoolCommunication
 target_include_directories(PoolCommunication PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
+# Add the current directory as an include directory for Types
 target_include_directories(Types PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Add the PoolCommunication directory as an include directory, so we can #include "Utilities/ColouredMsg.h"
+# Add the current directory as an include directory for Utilities
 target_include_directories(Utilities PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -15,4 +15,10 @@ namespace Constants
 
     /* The percentage of time to spend mining for the miner developer */
     const float DEV_FEE_PERCENT = 1.5;
+
+    /* Program version */
+    const std::string VERSION = "v0.0.1";
+
+    /* Name of config file to look for */
+    const std::string CONFIG_FILE_NAME = "config.json";
 }

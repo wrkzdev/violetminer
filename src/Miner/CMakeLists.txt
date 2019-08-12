@@ -48,7 +48,7 @@ else ()
 endif ()
 
 # Add an executable called violetminer with main.cpp as the entrypoint
-add_executable(violetminer main.cpp)
+add_executable(violetminer main.cpp GetConfig.cpp)
 
 # Need to link against pthreads on non windows
 if (NOT MSVC)

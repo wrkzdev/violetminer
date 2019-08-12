@@ -12,7 +12,7 @@
 
 namespace ArgonVariant
 {
-    std::function<std::shared_ptr<IHashingAlgorithm>(void)> chukwa = [](){
+    inline std::function<std::shared_ptr<IHashingAlgorithm>(void)> chukwa = [](){
         return std::make_shared<Argon2Hash>(
             512,
             3,
@@ -22,7 +22,7 @@ namespace ArgonVariant
         );
     };
 
-    std::unordered_map<std::string, std::function<std::shared_ptr<IHashingAlgorithm>(void)>> Algorithms
+    inline std::unordered_map<std::string, std::function<std::shared_ptr<IHashingAlgorithm>(void)>> Algorithms
     {
         { "chukwa", chukwa },
         { "turtlecoin", chukwa }

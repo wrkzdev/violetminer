@@ -20,6 +20,21 @@
 
 namespace Console
 {
+    /* If you're not on linux, chances are you might not know how to open a
+       terminal, so we want to keep the terminal open so the user can read the
+       error causing us to early exit. */
+    void exitOrWaitForInput(int exitCode)
+    {
+        #if defined(__APPLE__) || defined(WIN32)
+        std::cout << "Hit any key to exit: " << std::endl;
+
+        std::string dummy;
+        std::getline(std::cin, dummy);
+        #endif
+
+        exit(exitCode);
+    }
+
     bool isConsoleTty()
     {
 #if defined(WIN32)

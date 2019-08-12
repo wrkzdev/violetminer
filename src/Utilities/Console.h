@@ -30,6 +30,8 @@ namespace Console
         BrightMagenta
     };
 
+    void exitOrWaitForInput(int exitCode);
+
     void setTextColor(Color color);
 
     bool isConsoleTty();

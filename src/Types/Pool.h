@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 
+#include "ExternalLibs/json.hpp"
 #include "Types/IHashingAlgorithm.h"
+#include "ArgonVariants/Variants.h"
 
 struct Pool
 {
@@ -34,3 +37,43 @@ struct Pool
     /* Gets an instance of the mining algorithm used for this pool */
     std::function<std::shared_ptr<IHashingAlgorithm>(void)> algorithmGenerator;
 };
+
+inline void to_json(nlohmann::json &j, const Pool &pool)
+{
+    j = {
+        {"host", pool.host},
+        {"port", pool.port},
+        {"username", pool.username},
+        {"password", pool.password},
+        {"rigID", pool.rigID},
+        {"algorithm", pool.algorithm}
+    };
+}
+
+inline void from_json(const nlohmann::json &j, Pool &pool)
+{
+    pool.host = j.at("host").get<std::string>();
+    pool.port = j.at("port").get<uint16_t>();
+    pool.username = j.at("username").get<std::string>();
+
+    if (j.find("password") != j.end())
+    {
+        pool.password = j.at("password").get<std::string>();
+    }
+
+    if (j.find("rigID") != j.end())
+    {
+        pool.rigID = j.at("rigID").get<std::string>();
+    }
+
+    pool.algorithm = j.at("algorithm").get<std::string>();
+
+    const auto it = ArgonVariant::Algorithms.find(pool.algorithm);
+
+    if (it == ArgonVariant::Algorithms.end())
+    {
+        throw std::invalid_argument("Algorithm \"" + pool.algorithm + "\" is not a known algorithm!");
+    }
+
+    pool.algorithmGenerator = it->second;
+}
