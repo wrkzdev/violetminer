@@ -185,7 +185,14 @@ inline void from_json(const nlohmann::json &j, LoginMessage &l)
 {
     from_json(j, static_cast<PoolMessage &>(l));
 
-    l.ID = j.at("id").get<std::string>();
+    if (j.at("id").is_string())
+    {
+        l.ID = j.at("id").get<std::string>();
+    }
+    else
+    {
+        l.ID = std::to_string(j.at("id").get<uint32_t>());
+    }
 
     const auto result = j.at("result");
 
@@ -206,7 +213,15 @@ inline void from_json(const nlohmann::json &j, ErrorMessage &e)
 {
     from_json(j, static_cast<PoolMessage &>(e));
 
-    e.ID = j.at("id").get<std::string>();
+    if (j.at("id").is_string())
+    {
+        e.ID = j.at("id").get<std::string>();
+    }
+    else
+    {
+        e.ID = std::to_string(j.at("id").get<uint32_t>());
+    }
+
     e.error = j.at("error").get<PoolError>();
 }
 
@@ -214,7 +229,14 @@ inline void from_json(const nlohmann::json &j, ShareAcceptedMessage &s)
 {
     from_json(j, static_cast<PoolMessage &>(s));
 
-    s.ID = j.at("id").get<std::string>();
+    if (j.at("id").is_string())
+    {
+        s.ID = j.at("id").get<std::string>();
+    }
+    else
+    {
+        s.ID = std::to_string(j.at("id").get<uint32_t>());
+    }
 
     const auto result = j.at("result");
 

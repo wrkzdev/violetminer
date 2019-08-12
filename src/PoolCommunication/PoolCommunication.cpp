@@ -99,8 +99,10 @@ void PoolCommunication::login()
                         {"login", pool.username},
                         {"pass", pool.password},
                         {"rigid", pool.rigID},
+                        {"agent", pool.agent}
                     }},
-                    {"id", "1"}
+                    {"id", 1},
+                    {"jsonrpc", "2.0"}
                 };
 
                 const auto res = m_socket->sendMessageAndGetResponse(loginMsg.dump() + "\n");

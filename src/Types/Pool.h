@@ -7,9 +7,10 @@
 #include <functional>
 #include <string>
 
+#include "ArgonVariants/Variants.h"
+#include "Config/Constants.h"
 #include "ExternalLibs/json.hpp"
 #include "Types/IHashingAlgorithm.h"
-#include "ArgonVariants/Variants.h"
 
 struct Pool
 {
@@ -31,6 +32,9 @@ struct Pool
     /* The mining algorithm to use with this pool */
     std::string algorithm;
 
+    /* Custom user agent */
+    std::string agent = "violetminer-" + Constants::VERSION;
+
     /* The string we use to authenticate us once we have logged in */
     std::string loginID;
 
@@ -46,7 +50,8 @@ inline void to_json(nlohmann::json &j, const Pool &pool)
         {"username", pool.username},
         {"password", pool.password},
         {"rigID", pool.rigID},
-        {"algorithm", pool.algorithm}
+        {"algorithm", pool.algorithm},
+        {"agent", pool.agent}
     };
 }
 
@@ -76,4 +81,9 @@ inline void from_json(const nlohmann::json &j, Pool &pool)
     }
 
     pool.algorithmGenerator = it->second;
+
+    if (j.find("agent") != j.end())
+    {
+        pool.agent = j.at("agent").get<std::string>();
+    }
 }

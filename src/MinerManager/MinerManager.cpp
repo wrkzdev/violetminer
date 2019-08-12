@@ -84,7 +84,7 @@ void MinerManager::start()
     });
 
     /* Pass through accepted shares to the hash manager */
-    m_pool->onHashAccepted([this](const std::string &){
+    m_pool->onHashAccepted([this](const auto &){
         m_hashManager.shareAccepted();
     });
 
