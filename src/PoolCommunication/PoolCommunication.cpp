@@ -328,3 +328,8 @@ std::string PoolCommunication::getAlgorithmName()
 {
     return m_currentPool.algorithm;
 }
+
+const bool PoolCommunication::isNiceHash()
+{
+    return m_currentPool.niceHash;
+}

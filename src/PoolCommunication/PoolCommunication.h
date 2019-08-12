@@ -57,6 +57,9 @@ class PoolCommunication
     /* Gets the name of the current algorithm */
     std::string getAlgorithmName();
 
+    /* Whether we should use nicehash style nonces */
+    const bool isNiceHash();
+
   private:
     /* Connect to pools when necessary */
     void managePools();

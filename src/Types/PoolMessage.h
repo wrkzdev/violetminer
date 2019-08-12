@@ -23,9 +23,6 @@ struct PoolError
 
 struct Job
 {
-    /* The mining job to work on */
-    std::string blob;
-
     /* The mining job to work on, un-hexified */
     std::vector<uint8_t> rawBlob;
 
@@ -49,6 +46,9 @@ struct Job
     std::optional<uint8_t> rootMajorVersion;
 
     std::optional<uint8_t> rootMinorVersion;
+
+    /* Nonce value. Either zero or nice hash controlled. */
+    uint32_t nonce;
 };
 
 struct PoolMessage
@@ -104,20 +104,21 @@ inline void from_json(const nlohmann::json &j, PoolError &p)
 
 inline void from_json(const nlohmann::json &j, Job &job)
 {
-    job.blob = j.at("blob").get<std::string>();
+    std::string blob = j.at("blob").get<std::string>();
+
     job.jobID = j.at("job_id").get<std::string>();
 
-    if (job.blob.size() % 2 != 0)
+    if (blob.size() % 2 != 0)
     {
         throw std::invalid_argument("Blob length must be multiple of 2!");
     }
 
-    if (job.blob.size() < 76)
+    if (blob.size() < 76)
     {
         throw std::invalid_argument("Blob length must be at least 76 bytes!");
     }
 
-    job.rawBlob = Utilities::fromHex(job.blob);
+    job.rawBlob = Utilities::fromHex(blob);
 
     const std::string target = j.at("target").get<std::string>();
 
@@ -174,6 +175,8 @@ inline void from_json(const nlohmann::json &j, Job &job)
     {
         job.rootMinorVersion = j.at("rootMinorVersion").get<uint8_t>();
     }
+
+    job.nonce = *reinterpret_cast<uint32_t *>(job.rawBlob.data() + 39);
 }
 
 inline void from_json(const nlohmann::json &j, PoolMessage &p)

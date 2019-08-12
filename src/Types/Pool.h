@@ -38,6 +38,9 @@ struct Pool
     /* The string we use to authenticate us once we have logged in */
     std::string loginID;
 
+    /* Whether to use nicehash style nonces */
+    bool niceHash = false;
+
     /* Gets an instance of the mining algorithm used for this pool */
     std::function<std::shared_ptr<IHashingAlgorithm>(void)> algorithmGenerator;
 };
@@ -51,7 +54,8 @@ inline void to_json(nlohmann::json &j, const Pool &pool)
         {"password", pool.password},
         {"rigID", pool.rigID},
         {"algorithm", pool.algorithm},
-        {"agent", pool.agent}
+        {"agent", pool.agent},
+        {"niceHash", pool.niceHash}
     };
 }
 
@@ -85,5 +89,10 @@ inline void from_json(const nlohmann::json &j, Pool &pool)
     if (j.find("agent") != j.end())
     {
         pool.agent = j.at("agent").get<std::string>();
+    }
+
+    if (j.find("niceHash") != j.end())
+    {
+        pool.niceHash = j.at("niceHash").get<bool>();
     }
 }

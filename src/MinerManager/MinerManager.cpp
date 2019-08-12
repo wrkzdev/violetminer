@@ -181,6 +181,8 @@ void MinerManager::hash(uint32_t threadNumber)
 {
     std::shared_ptr<IHashingAlgorithm> algorithm = m_pool->getMiningAlgorithm();
 
+    const bool isNiceHash = m_pool->isNiceHash();
+
     /* Let the algorithm perform any necessary initialization */
     algorithm->init(m_currentJob.rawBlob);
 
@@ -190,9 +192,24 @@ void MinerManager::hash(uint32_t threadNumber)
            nonce */
         uint32_t localNonce = m_nonce + threadNumber;
 
+        uint32_t nonce = localNonce;
+
         std::vector<uint8_t> job = m_currentJob.rawBlob;
 
-        std::memcpy(job.data() + 39, &localNonce, sizeof(uint32_t));
+        /* If nicehash mode is enabled, we are only allowed to alter 3 bytes
+           in the nonce, instead of four. The fourth is reserved for nicehash
+           to do with as they like.
+           For this reason, we take the bottom 3 bytes of localNonce, treating
+           it as a 24 bit number, and copy those into the top 3 bytes of the
+           nonce, leaving the bottom byte untouched. This allows incrementing
+           to stay simple with just a += threadNumber.
+           See further https://github.com/nicehash/Specifications/blob/master/NiceHash_CryptoNight_modification_v1.0.txt */
+        if (isNiceHash)
+        {
+            nonce = (localNonce << 8) | (m_currentJob.nonce & 0x000000ff);
+        }
+
+        std::memcpy(job.data() + 39, &nonce, 4);
 
         /* Allow the algorithm to reinitialize for the new round, as some algorithms
            can avoid reinitializing each round. For example, we can calculate
@@ -203,11 +220,20 @@ void MinerManager::hash(uint32_t threadNumber)
         {
             const auto hash = algorithm->hash(job);
 
-            m_hashManager.submitHash(hash, m_currentJob.jobID, localNonce, m_currentJob.target);
+            m_hashManager.submitHash(hash, m_currentJob.jobID, nonce, m_currentJob.target);
 
             localNonce += m_threadCount;
 
-            std::memcpy(job.data() + 39, &localNonce, sizeof(uint32_t));
+            if (isNiceHash)
+            {
+                nonce = (localNonce << 8) | (m_currentJob.nonce & 0x000000ff);
+            }
+            else
+            {
+                nonce = localNonce;
+            }
+
+            std::memcpy(job.data() + 39, &nonce, 4);
         }
 
         /* Switch to new job. */
