@@ -4,6 +4,46 @@
 
 ![image](https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Argon_discharge_tube.jpg/640px-Argon_discharge_tube.jpg)
 
+## Algorithms Supported
+* TurtleCoin - choose `turtlecoin` or `chukwa`
+* WrkzCoin - choose `wrkzcoin` or `chukwa_wrkz`
+
+## Notes
+* Supports xmrig-proxy - Make sure to enable `niceHash: true` in your pool config.
+
+## Example Config
+
+Simply go through the normal setup and a config will be written to `config.json` on completion.
+Alternatively, copy and modify the following config to your purposes.
+
+```
+{
+    "pools": [
+        {
+            "agent": "",
+            "algorithm": "turtlecoin",
+            "host": "127.0.0.1",
+            "niceHash": false,
+            "password": "",
+            "port": 3333,
+            "rigID": "",
+            "username": "TRTLv2Fyavy8CXG8BPEbNeCHFZ1fuDCYCZ3vW5H5LXN4K2M2MHUpTENip9bbavpHvvPwb4NDkBWrNgURAd5DB38FHXWZyoBh4wW"
+        },
+        {
+            "agent": "",
+            "algorithm": "wrkzcoin",
+            "host": "127.0.0.1",
+            "niceHash": true,
+            "password": "",
+            "port": 5000,
+            "rigID": "",
+            "username": "WrkzjJMM8h9F8kDU59KUdTN8PvZmzu2HchyBG15R4SjLD4EcMg6qVWo3Qeqp4nNhgh1CPL7ixCL1P4MNwNPr5nTw11ma1MMXr7"
+        }
+    ],
+    "threadCount": 12
+}
+```
+
 ## Compiling
 
 ### Windows

@@ -23,9 +23,21 @@ namespace ArgonVariant
         );
     };
 
+    inline std::function<std::shared_ptr<IHashingAlgorithm>(void)> chukwa_wrkz = [](){
+        return std::make_shared<Argon2Hash>(
+            256,
+            4,
+            1,
+            16,
+            Constants::ARGON2ID
+        );
+    };
+
     inline std::unordered_map<std::string, std::function<std::shared_ptr<IHashingAlgorithm>(void)>> Algorithms
     {
         { "chukwa", chukwa },
-        { "turtlecoin", chukwa }
+        { "turtlecoin", chukwa },
+        { "chukwa_wrkz", chukwa_wrkz },
+        { "wrkzcoin", chukwa_wrkz },
     };
 }
