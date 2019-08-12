@@ -58,8 +58,6 @@ void MinerManager::start()
     /* Get the initial job to work on */
     m_currentJob = m_pool->getJob();
 
-    m_currentAlgorithm = m_pool->getAlgorithmName();
-
     m_pool->printPool();
     std::cout << WhiteMsg("New job, diff ") << WhiteMsg(m_currentJob.shareDifficulty) << std::endl;
 
@@ -89,24 +87,73 @@ void MinerManager::start()
     });
 
     m_pool->onPoolSwapped([this](const Pool &newPool){
-        /* New pool uses a different algorithm to old one, reinitialize */
-        if (newPool.algorithm != m_currentAlgorithm) {
-            stop();
-            start();
-        /* Otherwise just update to use the new job */
-        } else {
-            const auto job = m_pool->getJob();
-            setNewJob(job);
-        }
+        resumeMining();
+    });
+
+    m_pool->onPoolDisconnected([this](){
+        pauseMining();
     });
 
     /* Start listening for messages from the pool */
-    m_pool->handleMessages();
+    m_pool->startManaging();
+}
+
+void MinerManager::resumeMining()
+{
+    m_shouldStop = false;
+
+    std::cout << WhiteMsg("Resuming mining.") << std::endl;
+
+    m_currentJob = m_pool->getJob();
+
+    m_pool->printPool();
+    std::cout << WhiteMsg("New job, diff ") << WhiteMsg(m_currentJob.shareDifficulty) << std::endl;
+
+    /* Set initial nonce */
+    m_nonce = m_distribution(m_gen);
+
+    /* Indicate that there's no new jobs available to other threads */
+    m_newJobAvailable = std::vector<bool>(m_threadCount, false);
+ 
+    /* Launch off the miner threads */
+    for (uint32_t i = 0; i < m_threadCount; i++)
+    {
+        m_threads.push_back(std::thread(&MinerManager::hash, this, i));
+    }
+}
+
+void MinerManager::pauseMining()
+{
+    std::cout << WhiteMsg("Pausing mining.") << std::endl;
+
+    m_shouldStop = true;
+
+    for (int i = 0; i < m_threadCount; i++)
+    {
+        m_newJobAvailable[i] = true;
+    }
+
+    /* Wait for all the threads to stop */
+    for (auto &thread : m_threads)
+    {
+        if (thread.joinable())
+        {
+            thread.join();
+        }
+    }
+
+    /* Empty the threads vector for later re-creation */
+    m_threads.clear();
 }
 
 void MinerManager::stop()
 {
     m_shouldStop = true;
+
+    for (int i = 0; i < m_threadCount; i++)
+    {
+        m_newJobAvailable[i] = true;
+    }
 
     /* Wait for all the threads to stop */
     for (auto &thread : m_threads)

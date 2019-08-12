@@ -37,6 +37,10 @@ class MinerManager
 
     void setNewJob(const Job &job);
 
+    void pauseMining();
+
+    void resumeMining();
+
     /* PRIVATE VARIABLES */
     std::vector<std::thread> m_threads;
 
@@ -70,7 +74,4 @@ class MinerManager
 
     /* Thread that periodically prints hashrate, etc */
     std::thread m_statsThread;
-
-    /* The algorithm we are currently using with the current pool */
-    std::string m_currentAlgorithm;
 };

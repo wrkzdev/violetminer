@@ -64,9 +64,86 @@ void PoolCommunication::printPool()
     std::cout << InformationMsg(formatPool(m_currentPool));
 }
 
+PoolCommunication::~PoolCommunication()
+{
+    logout();
+}
+
 void PoolCommunication::logout()
 {
+    m_shouldStop = true;
+
+    m_findNewPool.notify_all();
+
     m_socket->stop();
+
+    if (m_managerThread.joinable())
+    {
+        m_managerThread.join();
+    }
+}
+
+void PoolCommunication::registerHandlers()
+{
+    m_socket->onMessage([this](const std::string &message) {
+        try
+        {
+            const auto poolMessage = parsePoolMessage(message);
+
+            if (auto job = std::get_if<JobMessage>(&poolMessage))
+            {
+                m_currentJob = job->job;
+
+                if (m_onNewJob)
+                {
+                    m_onNewJob(job->job);
+                }
+            }
+            else if (auto shareAccepted = std::get_if<ShareAcceptedMessage>(&poolMessage))
+            {
+                if (shareAccepted->status == "OK" && m_onHashAccepted)
+                {
+                    m_onHashAccepted(shareAccepted->ID);
+                }
+            }
+            else if (auto error = std::get_if<ErrorMessage>(&poolMessage))
+            {
+                const auto errorMessage = error->error.errorMessage;
+
+                std::cout << InformationMsg("Error message received from pool: ") << WarningMsg(errorMessage) << std::endl;
+
+                if (errorMessage == "Low difficulty share")
+                {
+                    std::cout << WarningMsg("Probably a stale job, unless you are only getting rejected shares") << std::endl
+                              << WarningMsg("If this is the case, ensure you are using the correct mining algorithm for this pool.") << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << WarningMsg("Unexpected message: " + message) << std::endl;
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cout << WarningMsg(e.what()) << std::endl;
+        }
+    });
+
+    /* Socket closed */
+    m_socket->onSocketClosed([this]() {
+        std::cout << WarningMsg("Lost connection with pool.") << std::endl;
+
+        /* Let the miner know to stop mining */
+        if (m_onPoolDisconnected) {
+            m_onPoolDisconnected();
+        }
+
+        std::unique_lock<std::mutex> lock(m_mutex);
+
+        m_shouldFindNewPool = true;
+
+        m_findNewPool.notify_all();
+    });
 }
 
 void PoolCommunication::login()
@@ -119,6 +196,13 @@ void PoolCommunication::login()
                         m_currentPool.loginID = message.loginID;
                         m_preferredPool = i == 1;
                         m_currentJob = message.job;
+
+                        registerHandlers();
+
+                        if (m_onPoolSwapped)
+                        {
+                            m_onPoolSwapped(pool);
+                        }
 
                         return;
 
@@ -188,52 +272,51 @@ void PoolCommunication::onHashAccepted(const std::function<void(const std::strin
     m_onHashAccepted = callback;
 }
 
+/* Called whenever we disconnected from the current pool, and connected to a new pool */
 void PoolCommunication::onPoolSwapped(const std::function<void(const Pool &pool)> callback)
 {
     m_onPoolSwapped = callback;
 }
 
-void PoolCommunication::handleMessages()
+/* Called whenever we disconnected from the current pool */
+void PoolCommunication::onPoolDisconnected(const std::function<void(void)> callback)
 {
-    m_socket->onMessage([this](const std::string &message) {
-        try
+    m_onPoolDisconnected = callback;
+}
+
+/* Start managing the pool communication, handle messages, socket closing,
+   reconnecting */
+void PoolCommunication::startManaging()
+{
+    m_shouldStop = false;
+
+    m_managerThread = std::thread(&PoolCommunication::managePools, this);
+}
+
+void PoolCommunication::managePools()
+{
+    while (!m_shouldStop)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+
+        m_findNewPool.wait(lock, [&]{
+            if (m_shouldStop)
+            {
+                return true;
+            }
+
+            return m_shouldFindNewPool;
+        });
+
+        if (m_shouldStop)
         {
-            const auto poolMessage = parsePoolMessage(message);
-
-            if (auto job = std::get_if<JobMessage>(&poolMessage))
-            {
-                m_currentJob = job->job;
-
-                if (m_onNewJob)
-                {
-                    m_onNewJob(job->job);
-                }
-            }
-            else if (auto shareAccepted = std::get_if<ShareAcceptedMessage>(&poolMessage))
-            {
-                if (shareAccepted->status == "OK" && m_onHashAccepted)
-                {
-                    m_onHashAccepted(shareAccepted->ID);
-                }
-            }
-            else if (auto error = std::get_if<ErrorMessage>(&poolMessage))
-            {
-                const auto errorMessage = error->error.errorMessage;
-
-                std::cout << InformationMsg("Error message received from pool: ") << WarningMsg(errorMessage) << std::endl;
-
-                if (errorMessage == "Low difficulty share")
-                {
-                    std::cout << WarningMsg("Probably a stale job, unless you are only getting rejected shares") << std::endl
-                              << WarningMsg("If this is the case, ensure you are using the correct mining algorithm for this pool.") << std::endl;
-                }
-            }
+            return;
         }
-        catch (const std::exception &e)
-        {
-            std::cout << WarningMsg(e.what()) << std::endl;
-        }
-    });
+
+        login();
+
+        m_shouldFindNewPool = false;
+    }
 }
 
 std::shared_ptr<IHashingAlgorithm> PoolCommunication::getMiningAlgorithm()
